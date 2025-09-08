@@ -3,26 +3,60 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  TableInheritance,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { Administrativo } from './administrativo.entity';
 import { Area } from './area.entity';
 import { Oficina } from './oficina.entity';
+import { Profesor } from './profesor.entity';
 
-@Entity()
-@TableInheritance({ column: { type: 'varchar', name: 'tipo' } })
-export abstract class Empleado {
+@Entity('empleado')
+export class Empleado {
+  @ApiProperty({ example: 1, description: 'Identificador único del empleado' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({
+    example: '123456789',
+    description: 'Documento de identificación',
+  })
+  @Column({ unique: true })
+  documento: string;
+
+  @ApiProperty({
+    example: 'Juan Pérez',
+    description: 'Nombre completo del empleado',
+  })
   @Column()
   nombre: string;
 
-  @Column()
-  documento: string;
+  @ApiProperty({
+    example: 'profesor',
+    description: 'Tipo de empleado: profesor o administrativo',
+    enum: ['profesor', 'administrativo'],
+  })
+  @Column({ type: 'enum', enum: ['profesor', 'administrativo'] })
+  tipo: 'profesor' | 'administrativo';
 
-  @ManyToOne(() => Area, (area) => area.empleados)
+  @ManyToOne(() => Area, (area) => area.empleados, { eager: true })
   area: Area;
 
-  @ManyToOne(() => Oficina, (oficina) => oficina.empleados)
+  @ManyToOne(() => Oficina, (oficina) => oficina.empleados, { eager: true })
   oficina: Oficina;
+
+  @OneToOne(() => Profesor, (profesor) => profesor.empleado, {
+    nullable: true,
+    cascade: true,
+  })
+  @JoinColumn()
+  profesor: Profesor;
+
+  @OneToOne(() => Administrativo, (administrativo) => administrativo.empleado, {
+    nullable: true,
+    cascade: true,
+  })
+  @JoinColumn()
+  administrativo: Administrativo;
 }

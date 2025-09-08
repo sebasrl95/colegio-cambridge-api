@@ -1,13 +1,16 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Oficina } from './oficina.entity';
+import { ApiProperty } from '@nestjs/swagger';
 import { Empleado } from './empleado.entity';
+import { Oficina } from './oficina.entity';
 
-@Entity()
+@Entity('area')
 export class Area {
+  @ApiProperty({ example: 1, description: 'Identificador único del área' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @ApiProperty({ example: 'Ciencias', description: 'Nombre del área' })
+  @Column({ unique: true })
   nombre: string;
 
   @OneToMany(() => Oficina, (oficina) => oficina.area)
