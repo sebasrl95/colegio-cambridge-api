@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +12,14 @@ export class AreaService {
     private areaRepo: Repository<Area>,
   ) {}
 
-  create(createAreaDto: CreateAreaDto) {
+  async create(createAreaDto: CreateAreaDto) {
+    const findArea = await this.findByName(createAreaDto.nombre);
+    if (findArea && findArea.nombre) {
+      throw new HttpException(
+        'Este área ya se encuentra registrada',
+        HttpStatus.CONFLICT,
+      );
+    }
     const area = this.areaRepo.create(createAreaDto);
     return this.areaRepo.save(area);
   }
@@ -25,6 +32,12 @@ export class AreaService {
     return this.areaRepo.findOne({
       where: { id },
       relations: ['oficinas', 'empleados'],
+    });
+  }
+
+  findByName(nombre: string) {
+    return this.areaRepo.findOne({
+      where: { nombre },
     });
   }
 

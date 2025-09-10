@@ -5,20 +5,14 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { Area } from './area.entity';
 import { Empleado } from './empleado.entity';
 
 @Entity('oficina')
 export class Oficina {
-  @ApiProperty({ example: 101, description: 'Código único de la oficina' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({
-    example: 'OF-101',
-    description: 'Código asignado a la oficina',
-  })
   @Column({ unique: true })
   codigo: string;
 

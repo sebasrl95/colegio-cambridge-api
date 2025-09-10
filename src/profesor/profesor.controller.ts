@@ -12,7 +12,7 @@ import { CreateProfesorDto } from './dto/create-profesor.dto';
 import { UpdateProfesorDto } from './dto/update-profesor.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('profesor')
+@ApiTags('Profesor')
 @Controller('profesor')
 export class ProfesorController {
   constructor(private readonly profesorService: ProfesorService) {}

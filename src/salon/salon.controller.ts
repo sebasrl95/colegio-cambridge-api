@@ -12,7 +12,7 @@ import { CreateSalonDto } from './dto/create-salon.dto';
 import { UpdateSalonDto } from './dto/update-salon.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('salon')
+@ApiTags('Salón')
 @Controller('salon')
 export class SalonController {
   constructor(private readonly salonService: SalonService) {}

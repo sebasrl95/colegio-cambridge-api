@@ -13,12 +13,11 @@ async function bootstrap() {
     .setTitle('API Colegio Cambridge')
     .setDescription('Documentación de la API del Colegio Cambridge')
     .setVersion('1.0')
-    .addTag('colegio')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // ⚡ Swagger en la raíz `/`
+  // Swagger en la raíz '/'
   SwaggerModule.setup('/', app, document);
 
   // Habilitar CORS para permitir peticiones desde el frontend
@@ -30,4 +29,5 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
+
 void bootstrap();

@@ -12,7 +12,7 @@ import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('area')
+@ApiTags('Área')
 @Controller('area')
 export class AreaController {
   constructor(private readonly areaService: AreaService) {}

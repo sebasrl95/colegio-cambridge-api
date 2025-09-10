@@ -12,7 +12,7 @@ import { CreateAdministrativoDto } from './dto/create-administrativo.dto';
 import { UpdateAdministrativoDto } from './dto/update-administrativo.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('administrativo')
+@ApiTags('Administrativo')
 @Controller('administrativo')
 export class AdministrativoController {
   constructor(private readonly administrativoService: AdministrativoService) {}

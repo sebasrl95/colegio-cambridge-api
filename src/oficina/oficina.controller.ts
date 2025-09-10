@@ -12,7 +12,7 @@ import { CreateOficinaDto } from './dto/create-oficina.dto';
 import { UpdateOficinaDto } from './dto/update-oficina.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('oficina')
+@ApiTags('Oficina')
 @Controller('oficina')
 export class OficinaController {
   constructor(private readonly oficinaService: OficinaService) {}

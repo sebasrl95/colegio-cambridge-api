@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOficinaDto } from './dto/create-oficina.dto';
 import { UpdateOficinaDto } from './dto/update-oficina.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,11 +12,15 @@ export class OficinaService {
     private readonly oficinaRepository: Repository<Oficina>,
   ) {}
 
-  create(createOficinaDto: CreateOficinaDto) {
-    const oficina = this.oficinaRepository.create({
-      ...createOficinaDto,
-      area: { id: createOficinaDto.areaId },
-    });
+  async create(createOficinaDto: CreateOficinaDto) {
+    const findOficina = await this.findByCode(createOficinaDto.codigo);
+    if (findOficina && findOficina.codigo) {
+      throw new HttpException(
+        'Este oficina ya se encuentra registrada',
+        HttpStatus.CONFLICT,
+      );
+    }
+    const oficina = this.oficinaRepository.create(createOficinaDto);
     return this.oficinaRepository.save(oficina);
   }
 
@@ -28,6 +32,12 @@ export class OficinaService {
     return this.oficinaRepository.findOne({
       where: { id },
       relations: ['area', 'empleados'],
+    });
+  }
+
+  findByCode(codigo: string) {
+    return this.oficinaRepository.findOne({
+      where: { codigo },
     });
   }
 
