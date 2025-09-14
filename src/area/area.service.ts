@@ -1,52 +1,56 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAreaDto } from './dto/create-area.dto';
-import { UpdateAreaDto } from './dto/update-area.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Area } from 'src/entities/area.entity';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Area } from 'src/entities/area.schema';
 
 @Injectable()
 export class AreaService {
-  constructor(
-    @InjectRepository(Area)
-    private areaRepo: Repository<Area>,
-  ) {}
+  constructor(@InjectModel(Area.name) private areaModel: Model<Area>) {}
 
-  async create(createAreaDto: CreateAreaDto) {
+  async create(createAreaDto: CreateAreaDto): Promise<Area> {
     const findArea = await this.findByName(createAreaDto.nombre);
-    if (findArea && findArea.nombre) {
+    if (findArea) {
       throw new HttpException(
-        'Este área ya se encuentra registrada',
+        'Esta área ya se encuentra registrada',
         HttpStatus.CONFLICT,
       );
     }
-    const area = this.areaRepo.create(createAreaDto);
-    return this.areaRepo.save(area);
+
+    const newArea = new this.areaModel(createAreaDto);
+    return newArea.save();
   }
 
-  findAll() {
-    return this.areaRepo.find({ relations: ['oficinas', 'empleados'] });
+  async findAll(): Promise<Area[]> {
+    return this.areaModel.find().populate('oficinas').exec();
   }
 
-  findOne(id: number) {
-    return this.areaRepo.findOne({
-      where: { id },
-      relations: ['oficinas', 'empleados'],
-    });
+  async findOne(id: string): Promise<Area> {
+    const r = await this.areaModel.findById(id).populate('oficinas').exec();
+    if (!r) throw new NotFoundException('Área no encontrada');
+    return r;
   }
 
-  findByName(nombre: string) {
-    return this.areaRepo.findOne({
-      where: { nombre },
-    });
+  async findByName(nombre: string): Promise<Area | null> {
+    return this.areaModel.findOne({ nombre }).exec();
   }
 
-  async update(id: number, updateAreaDto: UpdateAreaDto) {
-    await this.areaRepo.update(id, updateAreaDto);
-    return this.findOne(id);
+  async update(id: string, data: Partial<Area>): Promise<Area> {
+    const r = await this.areaModel
+      .findByIdAndUpdate(id, data, { new: true })
+      .exec();
+    if (!r) throw new NotFoundException('Área no encontrada');
+    return r;
   }
 
-  remove(id: number) {
-    return this.areaRepo.delete(id);
+  async remove(id: string): Promise<Area> {
+    const r = await this.areaModel.findByIdAndDelete(id).exec();
+    if (!r) throw new NotFoundException('Área no encontrada');
+    return r;
   }
 }

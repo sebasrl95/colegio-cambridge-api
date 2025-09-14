@@ -6,6 +6,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
+
+  // Prefijo global para la API
   app.setGlobalPrefix('api/v1');
 
   // Configuración de Swagger
@@ -16,9 +18,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-
-  // Swagger en la raíz '/'
-  SwaggerModule.setup('/', app, document);
+  SwaggerModule.setup('', app, document);
 
   // Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors({
@@ -27,7 +27,10 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Swagger UI available at http://localhost:${port}/`);
 }
 
 void bootstrap();

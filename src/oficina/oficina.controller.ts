@@ -32,18 +32,18 @@ export class OficinaController {
   @Get(':id')
   @ApiResponse({ status: 200, description: 'Devuelve una oficina por su ID.' })
   findOne(@Param('id') id: string) {
-    return this.oficinaService.findOne(+id);
+    return this.oficinaService.findOne(id);
   }
 
   @Patch(':id')
   @ApiResponse({ status: 200, description: 'Actualiza una oficina.' })
   update(@Param('id') id: string, @Body() updateOficinaDto: UpdateOficinaDto) {
-    return this.oficinaService.update(+id, updateOficinaDto);
+    return this.oficinaService.update(id, updateOficinaDto);
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina una oficina.' })
   remove(@Param('id') id: string) {
-    return this.oficinaService.remove(+id);
+    return this.oficinaService.remove(id);
   }
 }

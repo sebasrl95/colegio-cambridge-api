@@ -1,57 +1,77 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOficinaDto } from './dto/create-oficina.dto';
-import { UpdateOficinaDto } from './dto/update-oficina.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Oficina } from 'src/entities/oficina.entity';
-import { Repository } from 'typeorm';
+import { Oficina } from 'src/entities/oficina.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UpdateSalonDto } from 'src/salon/dto/update-salon.dto';
+import { Area } from 'src/entities/area.schema';
 
 @Injectable()
 export class OficinaService {
   constructor(
-    @InjectRepository(Oficina)
-    private readonly oficinaRepository: Repository<Oficina>,
+    @InjectModel(Oficina.name) private oficinaModel: Model<Oficina>,
+    @InjectModel(Area.name) private areaModel: Model<Oficina>,
   ) {}
 
-  async create(createOficinaDto: CreateOficinaDto) {
+  async create(createOficinaDto: CreateOficinaDto): Promise<Oficina> {
     const findOficina = await this.findByCode(createOficinaDto.codigo);
-    if (findOficina && findOficina.codigo) {
+    if (findOficina) {
       throw new HttpException(
-        'Este oficina ya se encuentra registrada',
+        'Esta oficina ya se encuentra registrada',
         HttpStatus.CONFLICT,
       );
     }
-    const oficina = this.oficinaRepository.create(createOficinaDto);
-    return this.oficinaRepository.save(oficina);
+    const oficina = new this.oficinaModel(createOficinaDto);
+    const savedOficina = await oficina.save();
+    await this.areaModel.findByIdAndUpdate(
+      createOficinaDto.area,
+      { $push: { oficinas: savedOficina._id } },
+      { new: true },
+    );
+
+    return savedOficina;
   }
 
-  findAll() {
-    return this.oficinaRepository.find({ relations: ['area', 'empleados'] });
+  async findAll(): Promise<Oficina[]> {
+    return this.oficinaModel
+      .find()
+      .populate('area')
+      .populate('empleados')
+      .exec();
   }
 
-  findOne(id: number) {
-    return this.oficinaRepository.findOne({
-      where: { id },
-      relations: ['area', 'empleados'],
-    });
+  async findOne(id: string): Promise<Oficina> {
+    const r = await this.oficinaModel
+      .findById(id)
+      .populate('area')
+      .populate('empleados')
+      .exec();
+    if (!r) throw new NotFoundException('Oficina no encontrada');
+    return r;
   }
 
-  findByCode(codigo: string) {
-    return this.oficinaRepository.findOne({
-      where: { codigo },
-    });
+  async findByCode(codigo: string): Promise<Oficina | null> {
+    return this.oficinaModel.findOne({ codigo }).exec();
   }
 
-  async update(id: number, updateOficinaDto: UpdateOficinaDto) {
-    await this.oficinaRepository.update(id, {
-      ...updateOficinaDto,
-      area: updateOficinaDto.areaId
-        ? { id: updateOficinaDto.areaId }
-        : undefined,
-    });
-    return this.findOne(id);
+  async update(id: string, updateOficinaDto: UpdateSalonDto): Promise<Oficina> {
+    const oficina = await this.oficinaModel
+      .findByIdAndUpdate(id, updateOficinaDto, { new: true })
+      .exec();
+    if (!oficina) {
+      throw new NotFoundException(`Oficina con id ${id} no encontrada`);
+    }
+    return oficina;
   }
 
-  remove(id: number) {
-    return this.oficinaRepository.delete(id);
+  async remove(id: string): Promise<Oficina> {
+    const r = await this.oficinaModel.findByIdAndDelete(id).exec();
+    if (!r) throw new NotFoundException('Área no encontrada');
+    return r;
   }
 }

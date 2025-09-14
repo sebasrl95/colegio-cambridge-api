@@ -1,58 +1,56 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Empleado } from 'src/entities/empleado.schema';
+import { Model } from 'mongoose';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Administrativo } from 'src/entities/administrativo.entity';
-import { Empleado } from 'src/entities/empleado.entity';
-import { Profesor } from 'src/entities/profesor.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class EmpleadoService {
   constructor(
-    @InjectRepository(Empleado)
-    private empleadoRepo: Repository<Empleado>,
-    @InjectRepository(Profesor)
-    private profesorRepo: Repository<Profesor>,
-    @InjectRepository(Administrativo)
-    private adminRepo: Repository<Administrativo>,
+    @InjectModel(Empleado.name) private empleadoModel: Model<Empleado>,
   ) {}
 
-  async create(createEmpleadoDto: CreateEmpleadoDto) {
-    let empleado: Empleado;
-
-    if (createEmpleadoDto.tipo.toLowerCase() === 'profesor') {
-      empleado = this.empleadoRepo.create({
-        ...createEmpleadoDto,
-        tipo: 'profesor',
-      });
-
-      return this.empleadoRepo.save(empleado);
+  async create(createEmpleadoDto: CreateEmpleadoDto): Promise<Empleado> {
+    // validar documento único
+    const existing = await this.empleadoModel.findOne({
+      documento: createEmpleadoDto.documento,
+    });
+    if (existing) {
+      throw new ConflictException(
+        `El documento ${createEmpleadoDto.documento} ya está registrado`,
+      );
     }
 
-    if (createEmpleadoDto.tipo.toLowerCase() === 'administrativo') {
-      empleado = this.empleadoRepo.create({
-        ...createEmpleadoDto,
-        tipo: 'administrativo',
-      });
-
-      return this.empleadoRepo.save(empleado);
+    if (
+      createEmpleadoDto.tipoEmpleado !== 'profesor' &&
+      createEmpleadoDto.tipoEmpleado !== 'administrativo'
+    ) {
+      throw new ConflictException('Tipo de empleado no válido');
     }
 
-    throw new Error('Tipo de empleado no válido');
+    const nuevoEmpleado = new this.empleadoModel(createEmpleadoDto);
+    return nuevoEmpleado.save();
   }
 
-  findAll() {
-    return this.empleadoRepo.find({
-      relations: ['area', 'oficina'],
-    });
+  async findAll(): Promise<Empleado[]> {
+    return this.empleadoModel
+      .find()
+      .populate('areaId')
+      .populate('oficinaId')
+      .exec();
   }
 
-  async findOne(id: number) {
-    const empleado = await this.empleadoRepo.findOne({
-      where: { id },
-      relations: ['area', 'oficina'],
-    });
+  async findOne(id: string): Promise<Empleado> {
+    const empleado = await this.empleadoModel
+      .findById(id)
+      .populate('areaId')
+      .populate('oficinaId')
+      .exec();
 
     if (!empleado) {
       throw new NotFoundException(`Empleado con id ${id} no encontrado`);
@@ -60,14 +58,25 @@ export class EmpleadoService {
     return empleado;
   }
 
-  async update(id: number, updateEmpleadoDto: UpdateEmpleadoDto) {
-    const empleado = await this.findOne(id);
-    Object.assign(empleado, updateEmpleadoDto);
-    return this.empleadoRepo.save(empleado);
+  async update(
+    id: string,
+    updateEmpleadoDto: UpdateEmpleadoDto,
+  ): Promise<Empleado> {
+    const empleado = await this.empleadoModel
+      .findByIdAndUpdate(id, updateEmpleadoDto, { new: true })
+      .exec();
+
+    if (!empleado) {
+      throw new NotFoundException(`Empleado con id ${id} no encontrado`);
+    }
+    return empleado;
   }
 
-  async remove(id: number) {
-    const empleado = await this.findOne(id);
-    return this.empleadoRepo.remove(empleado);
+  async remove(id: string): Promise<Empleado> {
+    const empleado = await this.empleadoModel.findByIdAndDelete(id).exec();
+    if (!empleado) {
+      throw new NotFoundException(`Empleado con id ${id} no encontrado`);
+    }
+    return empleado;
   }
 }

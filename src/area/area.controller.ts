@@ -32,18 +32,18 @@ export class AreaController {
   @Get(':id')
   @ApiResponse({ status: 200, description: 'Devuelve un area por su ID.' })
   findOne(@Param('id') id: string) {
-    return this.areaService.findOne(+id);
+    return this.areaService.findOne(id);
   }
 
   @Patch(':id')
   @ApiResponse({ status: 200, description: 'Actualiza un area.' })
   update(@Param('id') id: string, @Body() updateAreaDto: UpdateAreaDto) {
-    return this.areaService.update(+id, updateAreaDto);
+    return this.areaService.update(id, updateAreaDto);
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un area.' })
   remove(@Param('id') id: string) {
-    return this.areaService.remove(+id);
+    return this.areaService.remove(id);
   }
 }

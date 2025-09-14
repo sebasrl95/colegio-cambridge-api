@@ -32,7 +32,7 @@ export class EmpleadoController {
   @Get(':id')
   @ApiResponse({ status: 200, description: 'Devuelve un empleado por su ID.' })
   findOne(@Param('id') id: string) {
-    return this.empleadoService.findOne(+id);
+    return this.empleadoService.findOne(id);
   }
 
   @Patch(':id')
@@ -41,12 +41,12 @@ export class EmpleadoController {
     @Param('id') id: string,
     @Body() updateEmpleadoDto: UpdateEmpleadoDto,
   ) {
-    return this.empleadoService.update(+id, updateEmpleadoDto);
+    return this.empleadoService.update(id, updateEmpleadoDto);
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un empleado.' })
   remove(@Param('id') id: string) {
-    return this.empleadoService.remove(+id);
+    return this.empleadoService.remove(id);
   }
 }

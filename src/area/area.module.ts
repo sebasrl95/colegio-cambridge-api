@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Area, AreaSchema } from '../entities/area.schema';
 import { AreaService } from './area.service';
 import { AreaController } from './area.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Area } from 'src/entities/area.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Area])],
+  imports: [
+    MongooseModule.forFeature([{ name: Area.name, schema: AreaSchema }]),
+  ],
   controllers: [AreaController],
   providers: [AreaService],
+  exports: [AreaService],
 })
 export class AreaModule {}

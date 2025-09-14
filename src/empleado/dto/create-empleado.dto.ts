@@ -1,54 +1,50 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
-import { TipoEmpleado } from 'src/entities/empleado.entity';
+import { IsEnum, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+
+export enum TipoProfesor {
+  PLANTA = 'planta',
+  CONTRATISTA = 'contratista',
+}
 
 export class CreateEmpleadoDto {
-  @IsString()
-  @IsNotEmpty()
   @ApiProperty({
     example: 'Juan Pérez',
     description: 'Nombre completo del empleado',
   })
-  nombre: string;
-
   @IsString()
   @IsNotEmpty()
+  nombre: string;
+
   @ApiProperty({
     example: '123456789',
     description: 'Documento de identificación',
   })
+  @IsString()
+  @IsNotEmpty()
   documento: string;
 
-  @ApiProperty({ enum: TipoEmpleado })
-  @IsEnum(TipoEmpleado)
   @ApiProperty({
-    example: 'profesor',
-    description: 'Tipo de empleado: profesor o administrativo',
-    enum: TipoEmpleado,
+    example: 1,
+    description: 'ID del área a la que pertenece el empleado',
   })
-  tipo: TipoEmpleado;
+  @IsMongoId()
+  @IsNotEmpty()
+  area: string;
 
-  @IsOptional()
-  @ApiProperty({
-    example: '1',
-    description: 'Id del profesor',
-    required: false,
-  })
-  profesorId?: number;
-
-  @IsOptional()
-  @ApiProperty({
-    example: '1',
-    description: 'Id del área',
-    required: false,
-  })
-  areaId?: number;
-
-  @IsOptional()
   @ApiProperty({
     example: '1',
     description: 'Id de la oficina',
     required: false,
   })
-  oficinaId?: number;
+  @IsMongoId()
+  @IsNotEmpty()
+  oficina: string;
+
+  @ApiProperty({ enum: ['profesor', 'administrativo'] })
+  @IsEnum(['profesor', 'administrativo'])
+  tipoEmpleado: 'profesor' | 'administrativo';
+
+  @ApiProperty({ enum: TipoProfesor, required: false })
+  @IsEnum(TipoProfesor)
+  tipoProfesor?: TipoProfesor;
 }

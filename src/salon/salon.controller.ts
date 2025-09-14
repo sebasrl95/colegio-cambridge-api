@@ -32,18 +32,18 @@ export class SalonController {
   @Get(':id')
   @ApiResponse({ status: 200, description: 'Devuelve un salón por su ID.' })
   findOne(@Param('id') id: string) {
-    return this.salonService.findOne(+id);
+    return this.salonService.findOne(id);
   }
 
   @Patch(':id')
   @ApiResponse({ status: 200, description: 'Actualiza un salón.' })
   update(@Param('id') id: string, @Body() updateSalonDto: UpdateSalonDto) {
-    return this.salonService.update(+id, updateSalonDto);
+    return this.salonService.update(id, updateSalonDto);
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un salón.' })
   remove(@Param('id') id: string) {
-    return this.salonService.remove(+id);
+    return this.salonService.remove(id);
   }
 }

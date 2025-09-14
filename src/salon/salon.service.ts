@@ -1,47 +1,61 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSalonDto } from './dto/create-salon.dto';
 import { UpdateSalonDto } from './dto/update-salon.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Salon } from 'src/entities/salon.entity';
-import { Repository } from 'typeorm';
+import { Salon } from 'src/entities/salon.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class SalonService {
   constructor(
-    @InjectRepository(Salon)
-    private readonly salonRepository: Repository<Salon>,
+    @InjectModel(Salon.name) private readonly salonModel: Model<Salon>,
   ) {}
 
-  async create(createSalonDto: CreateSalonDto) {
-    const findSalon = await this.findByCode(createSalonDto.codigo);
-    if (findSalon && findSalon.codigo) {
-      throw new HttpException(
-        'Este código de salón ya se encuentra registrado',
-        HttpStatus.CONFLICT,
+  async create(createSalonDto: CreateSalonDto): Promise<Salon> {
+    const existing = await this.salonModel.findOne({
+      codigo: createSalonDto.codigo,
+    });
+    if (existing) {
+      throw new ConflictException(
+        `El salón con código ${createSalonDto.codigo} ya existe`,
       );
     }
-    const salon = this.salonRepository.create(createSalonDto);
-    return this.salonRepository.save(salon);
+
+    const nuevoSalon = new this.salonModel(createSalonDto);
+    return nuevoSalon.save();
   }
 
-  findAll() {
-    return this.salonRepository.find();
+  async findAll(): Promise<Salon[]> {
+    return this.salonModel.find().populate('areaId').exec();
   }
 
-  findOne(id: number) {
-    return this.salonRepository.findOne({ where: { id } });
+  async findOne(id: string): Promise<Salon> {
+    const salon = await this.salonModel.findById(id).populate('areaId').exec();
+    if (!salon) {
+      throw new NotFoundException(`Salón con id ${id} no encontrado`);
+    }
+    return salon;
   }
 
-  findByCode(codigo: string) {
-    return this.salonRepository.findOne({ where: { codigo } });
+  async update(id: string, updateSalonDto: UpdateSalonDto): Promise<Salon> {
+    const salon = await this.salonModel
+      .findByIdAndUpdate(id, updateSalonDto, { new: true })
+      .exec();
+    if (!salon) {
+      throw new NotFoundException(`Salón con id ${id} no encontrado`);
+    }
+    return salon;
   }
 
-  async update(id: number, updateSalonDto: UpdateSalonDto) {
-    await this.salonRepository.update(id, updateSalonDto);
-    return this.findOne(id);
-  }
-
-  remove(id: number) {
-    return this.salonRepository.delete(id);
+  async remove(id: string): Promise<Salon> {
+    const salon = await this.salonModel.findByIdAndDelete(id).exec();
+    if (!salon) {
+      throw new NotFoundException(`Salón con id ${id} no encontrado`);
+    }
+    return salon;
   }
 }
