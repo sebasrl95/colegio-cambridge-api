@@ -60,18 +60,34 @@ export class OficinaService {
   }
 
   async update(id: string, updateOficinaDto: UpdateSalonDto): Promise<Oficina> {
-    const oficina = await this.oficinaModel
-      .findByIdAndUpdate(id, updateOficinaDto, { new: true })
-      .exec();
-    if (!oficina) {
+    const oficina = await this.oficinaModel.findById(id);
+    if (!oficina)
       throw new NotFoundException(`Oficina con id ${id} no encontrada`);
+
+    if (
+      updateOficinaDto.area &&
+      oficina.area.toString() !== updateOficinaDto.area
+    ) {
+      await this.areaModel.findByIdAndUpdate(oficina.area, {
+        $pull: { oficinas: oficina._id },
+      });
+      await this.areaModel.findByIdAndUpdate(updateOficinaDto.area, {
+        $push: { oficinas: oficina._id },
+      });
     }
-    return oficina;
+
+    Object.assign(oficina, updateOficinaDto);
+    return oficina.save();
   }
 
   async remove(id: string): Promise<Oficina> {
-    const r = await this.oficinaModel.findByIdAndDelete(id).exec();
-    if (!r) throw new NotFoundException('Área no encontrada');
-    return r;
+    const oficina = await this.oficinaModel.findByIdAndDelete(id);
+    if (!oficina)
+      throw new NotFoundException(`Oficina con id ${id} no encontrada`);
+
+    await this.areaModel.findByIdAndUpdate(oficina.area, {
+      $pull: { oficinas: oficina._id },
+    });
+    return oficina;
   }
 }

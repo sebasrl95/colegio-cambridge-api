@@ -1,6 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+export enum TipoEmpleado {
+  PROFESOR = 'profesor',
+  ADMINISTRATIVO = 'administrativo',
+}
+
+export enum TipoProfesor {
+  PLANTA = 'planta',
+  CONTRATISTA = 'contratista',
+}
+
 export type EmpleadoDocument = Empleado & Document;
 
 @Schema({ collection: 'empleados' })
@@ -12,10 +22,10 @@ export class Empleado {
   documento: string;
 
   @Prop({ required: true, enum: ['profesor', 'administrativo'] })
-  tipo: string;
+  tipoEmpleado: string;
 
   @Prop({ required: false, enum: ['planta', 'contratista'] })
-  categoria?: string;
+  tipoProfesor?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Area', required: true })
   area: Types.ObjectId;

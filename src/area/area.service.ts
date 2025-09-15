@@ -8,6 +8,7 @@ import { CreateAreaDto } from './dto/create-area.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Area } from 'src/entities/area.schema';
+import { UpdateAreaDto } from './dto/update-area.dto';
 
 @Injectable()
 export class AreaService {
@@ -27,30 +28,38 @@ export class AreaService {
   }
 
   async findAll(): Promise<Area[]> {
-    return this.areaModel.find().populate('oficinas').exec();
+    return this.areaModel
+      .find()
+      .populate('oficinas')
+      .populate('salones')
+      .exec();
   }
 
   async findOne(id: string): Promise<Area> {
-    const r = await this.areaModel.findById(id).populate('oficinas').exec();
-    if (!r) throw new NotFoundException('Área no encontrada');
-    return r;
+    const area = await this.areaModel
+      .findById(id)
+      .populate('oficinas')
+      .populate('salones')
+      .exec();
+    if (!area) throw new NotFoundException('Área no encontrada');
+    return area;
   }
 
   async findByName(nombre: string): Promise<Area | null> {
     return this.areaModel.findOne({ nombre }).exec();
   }
 
-  async update(id: string, data: Partial<Area>): Promise<Area> {
-    const r = await this.areaModel
-      .findByIdAndUpdate(id, data, { new: true })
+  async update(id: string, updateAreaDto: UpdateAreaDto): Promise<Area> {
+    const area = await this.areaModel
+      .findByIdAndUpdate(id, updateAreaDto, { new: true })
       .exec();
-    if (!r) throw new NotFoundException('Área no encontrada');
-    return r;
+    if (!area) throw new NotFoundException('Área no encontrada');
+    return area;
   }
 
   async remove(id: string): Promise<Area> {
-    const r = await this.areaModel.findByIdAndDelete(id).exec();
-    if (!r) throw new NotFoundException('Área no encontrada');
-    return r;
+    const area = await this.areaModel.findByIdAndDelete(id).exec();
+    if (!area) throw new NotFoundException('Área no encontrada');
+    return area;
   }
 }

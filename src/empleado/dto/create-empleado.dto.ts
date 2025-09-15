@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
-
-export enum TipoProfesor {
-  PLANTA = 'planta',
-  CONTRATISTA = 'contratista',
-}
+import {
+  IsEnum,
+  IsMongoId,
+  IsNotEmpty,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
+import { TipoEmpleado, TipoProfesor } from 'src/entities/empleado.schema';
 
 export class CreateEmpleadoDto {
   @ApiProperty({
@@ -41,10 +43,15 @@ export class CreateEmpleadoDto {
   oficina: string;
 
   @ApiProperty({ enum: ['profesor', 'administrativo'] })
-  @IsEnum(['profesor', 'administrativo'])
-  tipoEmpleado: 'profesor' | 'administrativo';
+  @IsEnum(TipoEmpleado)
+  tipoEmpleado: TipoEmpleado;
 
+  // Solo obligatorio si tipoEmpleado === PROFESOR
   @ApiProperty({ enum: TipoProfesor, required: false })
+  @ValidateIf(
+    (empleado: CreateEmpleadoDto) =>
+      empleado.tipoEmpleado === TipoEmpleado.PROFESOR,
+  )
   @IsEnum(TipoProfesor)
   tipoProfesor?: TipoProfesor;
 }
